@@ -1,7 +1,11 @@
-p index
 
-h2 alla mina worodeble #{session[:id]}!
+h2 Your online worderobe is here #{session[:username]}!
+
 
 p = worodeble
 - worodeble.each do |worodeble|
     p =worodeble["content"]
+
+a href="/clothing" Show my worderobe
+a href="/add" Add clothing
+

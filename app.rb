@@ -27,6 +27,7 @@ post('/login') do
   id=result["id"]
   if BCrypt::Password.new(pwdigest)==password
     session[:id]=id
+    session[:username] = username
     p session[:id]
     redirect('/worodeble')
   else
@@ -40,8 +41,9 @@ get('/worodeble') do
   p session[:id]
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
-  result=db.execute("SELECT * FROM worodeble WHERE user_id=?",id)
+  result=db.execute("SELECT * FROM users WHERE id=?",id)
   p result
+
   slim(:"worodeble/index",locals:{worodeble:result})
 end
 
@@ -61,4 +63,15 @@ post('/users') do
     "Lösenorden matchade inte"
 
   end
+end
+
+
+get('/clothing') do
+
+slim(:clothing)
+end
+
+get('/add') do
+
+slim(:add)
 end
