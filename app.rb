@@ -68,18 +68,18 @@ end
 
 get('/clothing') do
 
+  id=session[:id].to_i
+  
+  p session[:id]
+  db=SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash=true
+  result=db.execute("SELECT * FROM clothingitem WHERE user_id=?",id)
+  p result
+
 slim(:clothing)
 end
 
 get('/add') do
-  title = params[:title]
-  part = params[:part]
-  color = params[:color]
-  brand = params[:brand]
-  
-  db = SQLite3::Database.new('db/worodeble.db')
-  db.results_as_hash = true
-  db.execute("INSERT INTO clothingitem (user_id, name, type, color, brand) VALUES (?, ?, ?, ?, ?)", session[:id], title, part, color, brand)
 slim(:add)
 end
 
