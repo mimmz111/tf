@@ -1,0 +1,7 @@
+h2 Sökresultat
+ul
+  - if @results.nil? || @results.empty?
+    li Inga resultat hittades för sökningen.
+  - else
+    - @results.each do |result|
+      li = result['name']

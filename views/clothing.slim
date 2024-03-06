@@ -1,7 +1,13 @@
 p hej
 
-h2 Here is my worderobe #{session[:id]}!
+h2 Here is my worderobe #{session[:username]}!
 
-p = worodeble
-- worodeble.each do |worodeble|
-    p =worodeble["content"]
+
+- @worodeble.each do |clothingitem|
+    p  ________________________________
+    p The name: #{clothingitem["name"]}
+    p The type: #{clothingitem["type"]}
+    p The color: #{clothingitem["color"]}
+    p The brand: #{clothingitem["brand"]}
+    form method="POST" action="/clothing/#{clothingitem['clothingitem_id']}/delete"
+        input type="submit" value="Delete"

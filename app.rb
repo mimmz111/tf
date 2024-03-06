@@ -70,13 +70,19 @@ get('/clothing') do
 
   id=session[:id].to_i
   
-  p session[:id]
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
-  result=db.execute("SELECT * FROM clothingitem WHERE user_id=?",id)
-  p result
+  @worodeble=db.execute("SELECT name, type, color, brand, clothingitem_id FROM clothingitem WHERE user_id=?",id)
 
 slim(:clothing)
+end
+
+post '/clothing/:clothing_id/delete' do
+
+  clothingitem_id = params[:clothing_id].to_i
+  db = SQLite3::Database.new('db/worodeble.db')
+  db.execute("DELETE FROM clothingitem WHERE clothingitem_id=?", clothingitem_id)
+  redirect('/clothing')
 end
 
 get('/add') do
@@ -93,4 +99,23 @@ post('/add') do
   db.results_as_hash = true
   db.execute("INSERT INTO clothingitem (user_id, name, type, color, brand) VALUES (?, ?, ?, ?, ?)", session[:id], title, part, color, brand)
   redirect('/clothing')
+end
+
+get '/search' do
+
+  slim :search
+end
+
+post '/search' do
+  query = params[:query]
+  p query
+  db = SQLite3::Database.new('db/worodeble.db')
+  query_string = "%#{query}%"
+  @results = db.execute("SELECT * FROM clothingitem WHERE name LIKE ? OR type LIKE ? OR brand LIKE ? OR color LIKE ? OR user_id LIKE ?", query_string, query_string, query_string, query_string, query_string)
+  p @results
+  redirect('/search_result')
+end
+
+get '/search_result' do
+  slim :search_result
 end
