@@ -1,0 +1,9 @@
+h2 Hello admin
+h3 View accounts and delete them here
+
+- @allusers.each do |user|
+    p  ________________________________
+    p The name: #{user["username"]}
+   
+    form method="POST" action="/admin/#{user['id']}/delete"
+        input type="submit" value="Delete"

@@ -7,6 +7,13 @@ require 'sinatra/reloader'
 
 enable:sessions
 
+before do
+  db=SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash=true
+  if session[:tag] != "admin" && request.path_info.include?('/admin')
+    redirect ('/worodeble')
+  end
+end
 
 
 get('/') do
@@ -29,6 +36,11 @@ post('/login') do
     session[:id]=id
     session[:username] = username
     p session[:id]
+    if username== "admin"
+      session[:tag]="admin"
+    else
+      session[:tag]="user"
+    end
     redirect('/worodeble')
   else
     "FEL LÖSEN"
@@ -110,12 +122,48 @@ post '/search' do
   query = params[:query]
   p query
   db = SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash = true
   query_string = "%#{query}%"
-  @results = db.execute("SELECT * FROM clothingitem WHERE name LIKE ? OR type LIKE ? OR brand LIKE ? OR color LIKE ? OR user_id LIKE ?", query_string, query_string, query_string, query_string, query_string)
-  p @results
+  results = db.execute("SELECT * FROM clothingitem WHERE name LIKE ? OR type LIKE ? OR brand LIKE ? OR color LIKE ? OR user_id LIKE ?", query_string, query_string, query_string, query_string, query_string)
+  user_id = db.execute("SELECT id FROM users WHERE username = ?", query)
+  unless user_id == []
+    user_results = db.execute("SELECT * FROM clothingitem WHERE user_id = ?", user_id.first["id"])
+    results << user_results
+    results = results.first
+  end
+  unless results == nil
+    results.uniq!
+  end
+  session[:searchresults] = results
   redirect('/search_result')
 end
 
 get '/search_result' do
+  @db = SQLite3::Database.new('db/worodeble.db')
+  @db.results_as_hash = true
+  @results = session[:searchresults]
+  p @results
   slim :search_result
 end
+
+get ('/admin') do
+  @db = SQLite3::Database.new('db/worodeble.db')
+  @db.results_as_hash = true
+  @allusers=@db.execute("SELECT * FROM users")
+  
+  slim(:admin)
+end
+
+post '/admin/:id/delete' do
+
+  username = params[:id].to_i
+  db = SQLite3::Database.new('db/worodeble.db')
+  db.execute("DELETE FROM users WHERE id=?", username)
+  db.execute("DELETE FROM clothingitem WHERE user_id=?", username)
+
+  redirect('/admin')
+end
+
+
+
+#relationstabbell 
