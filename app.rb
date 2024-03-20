@@ -35,7 +35,6 @@ post('/login') do
   if BCrypt::Password.new(pwdigest)==password
     session[:id]=id
     session[:username] = username
-    p session[:id]
     if username== "admin"
       session[:tag]="admin"
     else
@@ -49,13 +48,9 @@ end
 
 get('/worodeble') do
   id=session[:id].to_i
-
-  p session[:id]
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
   result=db.execute("SELECT * FROM users WHERE id=?",id)
-  p result
-
   slim(:"worodeble/index",locals:{worodeble:result})
 end
 
@@ -79,18 +74,14 @@ end
 
 
 get('/clothing') do
-
   id=session[:id].to_i
-  
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
   @worodeble=db.execute("SELECT name, type, color, brand, clothingitem_id FROM clothingitem WHERE user_id=?",id)
-
 slim(:clothing)
 end
 
-post '/clothing/:clothing_id/delete' do
-
+post ('/clothing/:clothing_id/delete') do
   clothingitem_id = params[:clothing_id].to_i
   db = SQLite3::Database.new('db/worodeble.db')
   db.execute("DELETE FROM clothingitem WHERE clothingitem_id=?", clothingitem_id)
@@ -106,21 +97,18 @@ post('/add') do
   part = params[:part]
   color = params[:color]
   brand = params[:brand]
-  
   db = SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash = true
   db.execute("INSERT INTO clothingitem (user_id, name, type, color, brand) VALUES (?, ?, ?, ?, ?)", session[:id], title, part, color, brand)
   redirect('/clothing')
 end
 
-get '/search' do
-
-  slim :search
+get ('/search') do
+  slim (:search)
 end
 
-post '/search' do
+post ('/search') do
   query = params[:query]
-  p query
   db = SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash = true
   query_string = "%#{query}%"
@@ -138,11 +126,10 @@ post '/search' do
   redirect('/search_result')
 end
 
-get '/search_result' do
+get ('/search_result') do
   @db = SQLite3::Database.new('db/worodeble.db')
   @db.results_as_hash = true
   @results = session[:searchresults]
-  p @results
   slim :search_result
 end
 
@@ -150,19 +137,34 @@ get ('/admin') do
   @db = SQLite3::Database.new('db/worodeble.db')
   @db.results_as_hash = true
   @allusers=@db.execute("SELECT * FROM users")
-  
   slim(:admin)
 end
 
-post '/admin/:id/delete' do
-
+post ('/admin/:id/delete') do
   username = params[:id].to_i
   db = SQLite3::Database.new('db/worodeble.db')
   db.execute("DELETE FROM users WHERE id=?", username)
   db.execute("DELETE FROM clothingitem WHERE user_id=?", username)
-
   redirect('/admin')
 end
+
+get ('/global') do
+  @db=SQLite3::Database.new('db/worodeble.db')
+  @db.results_as_hash=true
+  @global=@db.execute("SELECT * FROM clothingitem")
+  @like==@db.execute("SELECT * FROM clothing_user_rel_like")
+  slim(:global)
+end
+
+post('/like/:id') do
+  clothingitem_id = params[:id]
+  user_id = session[:id]
+  db=SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash=true
+  db.execute("INSERT INTO clothing_user_rel_like (user_id, clothing_id) VALUES (?,?)",user_id, clothingitem_id)
+  redirect('/global')
+end
+
 
 
 
