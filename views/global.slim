@@ -1,12 +1,12 @@
-- @global.each do |user|
-    p  ________________________________
-    p The name: #{user["name"]}
-    form method="POST" action="/like/#{user["clothingitem_id"]}"
+-@global.each do |user|
+  p ________________________________
+  p The name: #{user["name"]}
+  
+  -unless session[:tag].nil? || session[:tag] == "guest"
+    - liked = @db.execute("SELECT 1 FROM clothing_user_rel_like WHERE clothing_id = ? AND user_id = ?", user["clothingitem_id"], session[:id]).any?
+    -if !liked
+      form method="POST" action="/like/#{user["clothingitem_id"]}"
         input type="submit" value="Like"
-    -liker_ids = @db.execute("SELECT user_id FROM clothing_user_rel_like WHERE clothing_id = ?", user["clothingitem_id"])
-    -likers = []
-    -liker_ids.each do |id|
-        -id = id["user_id"]
-        -likers << @db.execute("SELECT username FROM users WHERE id = ?", id).first["username"]
-    p #{likers}
-    
+  - liker_ids = @db.execute("SELECT user_id FROM clothing_user_rel_like WHERE clothing_id = ?", user["clothingitem_id"])
+  - likers = liker_ids.map { |id| @db.execute("SELECT username FROM users WHERE id = ?", id["user_id"]).first["username"] }
+  p Likes #{likers}

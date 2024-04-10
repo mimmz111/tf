@@ -6,6 +6,10 @@ html lang="en"
     link rel="stylesheet" href="/css/style.css"/
     title Document
   body
+  </ if flash[:error] >
+    <div class="alert alert-danger">
+      </= flash[:error]>
+    </div>
     nav
       a href="/" Register
       br/
@@ -13,11 +17,15 @@ html lang="en"
       br/
       a href="/global" Global
       br/
+      a href="/worodeble" Home
+      br/
       a href="/clothing" your woardrob 
       br/
       a href="/add" Add an item 
       br/
       a href="/search" Search for an item
+      br/
+      a href="/admin" Admin
     h1 Welcome to Worodeble!
 
     == yield

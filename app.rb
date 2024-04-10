@@ -3,15 +3,41 @@ require 'slim'
 require 'sqlite3'
 require 'bcrypt'
 require 'sinatra/reloader'
+require 'sinatra/flash'
 
-
+register Sinatra::Flash
 enable:sessions
+
+max_attempts=6
+initial_cooldown=2
+max_cooldown=10
+
+
 
 before do
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
   if session[:tag] != "admin" && request.path_info.include?('/admin')
     redirect ('/worodeble')
+  end
+  login_routes = ['/showlogin', '/', '/login', '/users', '/global', '/search', '/search_result', '/logout', '/error']
+  if session[:tag] == nil || session[:tag] == "guest"
+    unless login_routes.include?(request.path_info)
+      redirect('/global')
+    end
+  end
+  #if session[:tag] == "user" || session[:tag] == "admin" && request.path_info == '/' || request.path_info == "/showlogin" || request.path_info == "/login"
+    #redirect('/worodeble')
+  #end
+end
+
+before '/showlogin' do
+  session[:attempts] ||=0
+  if session[:attempts]>=max_attempts
+    cooldown=[initial_cooldown*(2**(session[:attempts]-max_attempts)),max_cooldown].min
+    if Time.now - (session[:last_attempt_time] || Time.now) < cooldown
+      halt 429, "Youre logging in too quickly, please wait #{cooldown-(Time.now-session[:last_attempt_time]).to_i} seconds"
+    end
   end
 end
 
@@ -25,11 +51,19 @@ get('/showlogin') do
 end
 
 post('/login') do
-  username=params[:username]
-  password=params[:password]
-  db=SQLite3::Database.new('db/worodeble.db')
-  db.results_as_hash=true
-  result=db.execute("SELECT * FROM users WHERE username=?",username).first
+
+  username = params[:username]
+  password = params[:password]
+  
+  if username.empty? || password.empty? || username==nil
+    redirect('/error') 
+  else
+    db = SQLite3::Database.new('db/worodeble.db')
+    db.results_as_hash = true
+    result = db.execute("SELECT * FROM users WHERE username=?", username).first
+    db.close
+  end
+
   pwdigest=result["pwdigest"]
   id=result["id"]
   if BCrypt::Password.new(pwdigest)==password
@@ -42,7 +76,9 @@ post('/login') do
     end
     redirect('/worodeble')
   else
-    "FEL LÖSEN"
+    session[:last_attempt_time]=Time.now 
+    session[:attempts]+=1
+    redirect('/showlogin')
   end
 end
 
@@ -54,13 +90,28 @@ get('/worodeble') do
   slim(:"worodeble/index",locals:{worodeble:result})
 end
 
+post ('/logout') do
+  session.clear
+  redirect('/showlogin')
+end
 
+get ('/error') do
+  slim(:error)
+end
 
 post('/users') do
   username=params[:username]
   password=params[:password]
   password_confirm=params[:password_confirm]
-
+  db=SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash = true
+  db.execute("SELECT username FROM users WHERE username = ?", username)
+  #if username = "" || password = ""
+     #redirect('/error')
+  #end
+  #if username != []
+    #redirect('/error')
+  #end
   if (password==password_confirm)
     password_digest= BCrypt::Password.create(password)
     db=SQLite3::Database.new('db/worodeble.db')
@@ -68,7 +119,6 @@ post('/users') do
     redirect('/')
   else
     "Lösenorden matchade inte"
-
   end
 end
 
@@ -126,6 +176,12 @@ post ('/search') do
   redirect('/search_result')
 end
 
+post ('/guest') do
+  session[:tag]="guest"
+  session[:username]="guest"
+  redirect('/global')
+end
+
 get ('/search_result') do
   @db = SQLite3::Database.new('db/worodeble.db')
   @db.results_as_hash = true
@@ -164,8 +220,3 @@ post('/like/:id') do
   db.execute("INSERT INTO clothing_user_rel_like (user_id, clothing_id) VALUES (?,?)",user_id, clothingitem_id)
   redirect('/global')
 end
-
-
-
-
-#relationstabbell 
