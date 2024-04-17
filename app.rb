@@ -56,7 +56,7 @@ post('/login') do
   password = params[:password]
   
   if username.empty? || password.empty? || username==nil
-    redirect('/error') 
+  
   else
     db = SQLite3::Database.new('db/worodeble.db')
     db.results_as_hash = true
@@ -186,7 +186,7 @@ get ('/search_result') do
   @db = SQLite3::Database.new('db/worodeble.db')
   @db.results_as_hash = true
   @results = session[:searchresults]
-  slim :search_result
+  slim (:search_result)
 end
 
 get ('/admin') do
@@ -219,4 +219,34 @@ post('/like/:id') do
   db.results_as_hash=true
   db.execute("INSERT INTO clothing_user_rel_like (user_id, clothing_id) VALUES (?,?)",user_id, clothingitem_id)
   redirect('/global')
+end
+
+get ('/edit/:id') do
+  db=SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash=true
+  @clothing_item = db.execute("SELECT * FROM clothingitem WHERE clothingitem_id = ?", params[:id]).first
+  
+  slim(:edit)
+end
+
+post '/update' do
+  db=SQLite3::Database.new('db/worodeble.db')
+  db.results_as_hash=true
+  # Retrieve the form data
+  clothingitem_id = params[:clothingitem_id]
+  name = params[:name]
+  type = params[:type]
+  color = params[:color]
+  brand = params[:brand]
+
+  p clothingitem_id
+  p name
+  p type
+
+
+  # Perform the update only if user_id matches session id
+  user_id = session[:user_id]
+  db.execute("UPDATE clothingitem SET name = ?, type = ?, color = ?, brand = ? WHERE clothingitem_id = ?", name, type, color, brand, clothingitem_id)
+
+  redirect '/clothing'
 end

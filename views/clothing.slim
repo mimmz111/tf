@@ -10,3 +10,5 @@ h2 Here is tyour worderobe #{session[:username]}!
     p The brand: #{clothingitem["brand"]}
     form method="POST" action="/clothing/#{clothingitem['clothingitem_id']}/delete"
         input type="submit" value="Delete"
+    a href="/edit/#{clothingitem['clothingitem_id']}"
+        button edit

@@ -1,0 +1,37 @@
+p hejsan
+
+- if @clothing_item
+  h2 Edit Clothing Item
+
+  form action="/update" method="post"
+    input type="hidden" name="clothingitem_id" value="#{@clothing_item['clothingitem_id']}"
+
+    label for="name" Name:
+    input type="text" name="name" value="#{@clothing_item['name']}"
+
+    select name="type"
+        option value="top" Top 
+        option value="bottom" Bottom 
+
+    select name="color"
+        option value="pink" Pink
+        option value="green" Green 
+        option value="blue" Blue
+        option value="black" Black
+        option value="white" White
+        option value="multicolor" Multicolor
+        option value="red" Red
+        option value="silver" Silver
+        option value="purple" Purple
+
+    select name="brand"
+        option value="nobrand" No brand
+        option value="hm" HM
+        option value="adoore" Adoore
+        option value="volt" Volt
+        option value="levis" Levis
+        option value="gucci" Gucci
+
+    input type="submit" value="Update Clothing Item"
+- else
+  p Clothing item not found
