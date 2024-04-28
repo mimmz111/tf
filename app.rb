@@ -123,26 +123,26 @@ post('/users') do
 end
 
 
-get('/clothing') do
+get('/clothing/index') do
   id=session[:id].to_i
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
   @worodeble=db.execute("SELECT name, type, color, brand, clothingitem_id FROM clothingitem WHERE user_id=?",id)
-slim(:clothing)
+slim(:"/clothing/index")
 end
 
 post ('/clothing/:clothing_id/delete') do
   clothingitem_id = params[:clothing_id].to_i
   db = SQLite3::Database.new('db/worodeble.db')
   db.execute("DELETE FROM clothingitem WHERE clothingitem_id=?", clothingitem_id)
-  redirect('/clothing')
+  redirect('/clothing/index')
 end
 
-get('/add') do
-slim(:add)
+get('/clothing/new') do
+slim(:"/clothing/new")
 end
 
-post('/add') do
+post('/create') do
   title = params[:title]
   part = params[:part]
   color = params[:color]
@@ -150,7 +150,7 @@ post('/add') do
   db = SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash = true
   db.execute("INSERT INTO clothingitem (user_id, name, type, color, brand) VALUES (?, ?, ?, ?, ?)", session[:id], title, part, color, brand)
-  redirect('/clothing')
+  redirect('clothing/index')
 end
 
 get ('/search') do
@@ -221,15 +221,15 @@ post('/like/:id') do
   redirect('/global')
 end
 
-get ('/edit/:id') do
+get ('/clothing/:id/edit') do
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
   @clothing_item = db.execute("SELECT * FROM clothingitem WHERE clothingitem_id = ?", params[:id]).first
   
-  slim(:edit)
+  slim(:"/clothing/edit")
 end
 
-post '/update' do
+post ('/clothing/:id/update') do
   db=SQLite3::Database.new('db/worodeble.db')
   db.results_as_hash=true
   # Retrieve the form data
@@ -239,14 +239,9 @@ post '/update' do
   color = params[:color]
   brand = params[:brand]
 
-  p clothingitem_id
-  p name
-  p type
-
-
   # Perform the update only if user_id matches session id
   user_id = session[:user_id]
   db.execute("UPDATE clothingitem SET name = ?, type = ?, color = ?, brand = ? WHERE clothingitem_id = ?", name, type, color, brand, clothingitem_id)
 
-  redirect '/clothing'
+  redirect ('/clothing/index')
 end

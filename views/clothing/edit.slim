@@ -1,13 +1,18 @@
-h2 Add your new clothing here
+p hejsan
 
+- if @clothing_item
+  h2 Edit Clothing Item
 
-form action="/add" method="post"
-    input type="text" name="title" placeholder="Title"
-    label for ="part" Part
-    select name="part"
+  form action="/clothing/:id/update" method="post"
+    input type="hidden" name="clothingitem_id" value="#{@clothing_item['clothingitem_id']}"
+
+    label for="name" Name:
+    input type="text" name="name" value="#{@clothing_item['name']}"
+
+    select name="type"
         option value="top" Top 
         option value="bottom" Bottom 
-    label for ="color" Color
+
     select name="color"
         option value="pink" Pink
         option value="green" Green 
@@ -18,7 +23,7 @@ form action="/add" method="post"
         option value="red" Red
         option value="silver" Silver
         option value="purple" Purple
-    label for ="brand" Brand
+
     select name="brand"
         option value="nobrand" No brand
         option value="hm" HM
@@ -26,4 +31,7 @@ form action="/add" method="post"
         option value="volt" Volt
         option value="levis" Levis
         option value="gucci" Gucci
-    input type="submit"
+
+    input type="submit" value="Update Clothing Item"
+- else
+  p Clothing item not found
